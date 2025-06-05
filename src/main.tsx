@@ -1,12 +1,12 @@
-import '@styles/custom.css';
-import '@styles/tailwind.css';
+import '@/styles/custom.css';
+import '@/styles/tailwind.css';
 
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App';
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
   </StrictMode>
