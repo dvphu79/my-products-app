@@ -6,7 +6,9 @@ import SigninForm from './_auth/forms/SigninForm';
 import { Home } from '@/_root/pages';
 
 const App = () => {
-  console.log(APPWRITE_CONFIG);
+  if (process.env.NODE_ENV === 'development') {
+    console.log('Appwrite Config:', APPWRITE_CONFIG);
+  }
   return (
     <main className='flex h-screen'>
       <Routes>
