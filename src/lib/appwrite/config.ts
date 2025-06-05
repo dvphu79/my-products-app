@@ -1,4 +1,4 @@
-import { Client, Account, Databases, Storage, ID } from 'appwrite';
+import { Client, Account, Databases, Storage } from 'appwrite';
 
 // Access environment variables
 const appwriteEndpoint = import.meta.env.VITE_APPWRITE_ENDPOINT;
@@ -21,7 +21,6 @@ client
 export const account = new Account(client);
 export const databases = new Databases(client);
 export const storage = new Storage(client);
-export { ID };
 
 // Optional: Export other config values if you store them in .env
 export const APPWRITE_CONFIG = {
@@ -29,5 +28,6 @@ export const APPWRITE_CONFIG = {
   PROJECT_ID: import.meta.env.VITE_APPWRITE_PROJECT_ID,
   DATABASE_ID: import.meta.env.VITE_APPWRITE_DATABASE_ID,
   PRODUCTS_COLLECTION_ID: import.meta.env.VITE_APPWRITE_PRODUCTS_COLLECTION_ID,
+  USERS_COLLECTION_ID: import.meta.env.VITE_APPWRITE_USERS_COLLECTION_ID,
   PRODUCT_IMAGES_BUCKET_ID: import.meta.env.VITE_APPWRITE_PRODUCT_IMAGES_BUCKET_ID,
 };

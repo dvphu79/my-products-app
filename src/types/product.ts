@@ -1,4 +1,4 @@
-export interface Product {
+export interface IProduct {
   $id?: string; // Appwrite document ID
   name: string;
   description: string;
