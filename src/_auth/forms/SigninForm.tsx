@@ -14,8 +14,8 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button'; // Link was missing here, added for consistency
+import { Link, useNavigate } from 'react-router-dom';
 import { useUserContext } from '@/context/AuthContext';
 import { signInAccount } from '@/lib/appwrite/api';
 
@@ -135,6 +135,15 @@ const SigninForm = () => {
               </Button>
             </form>
           </Form>
+          <p className='mt-4 text-center text-sm text-gray-600 dark:text-gray-400'>
+            Don&apos;t have an account?{' '}
+            <Link
+              to='/sign-up'
+              className='font-medium text-indigo-600 hover:underline dark:text-indigo-500'
+            >
+              Sign Up
+            </Link>
+          </p>
         </CardContent>
       </Card>
     </div>

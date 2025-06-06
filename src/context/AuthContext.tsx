@@ -2,10 +2,11 @@ import { useNavigate } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 
 import { type IUser } from '@/types/user';
-import { getAccount } from '@/lib/appwrite/api';
+import { getCurrentUser } from '@/lib/appwrite/api';
 
 export const INITIAL_USER = {
   $id: '',
+  accountId: '',
   name: '',
   username: '',
   email: '',
@@ -42,12 +43,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const currentAccount = await getAccount();
+      const currentAccount = await getCurrentUser();
       if (currentAccount) {
         setUser({
           $id: currentAccount.$id || '',
+          accountId: currentAccount.accountId || '',
           name: currentAccount.name || '',
-          username: currentAccount.email || '',
+          username: currentAccount.username || '',
           email: currentAccount.email || '',
           imageUrl: '',
           bio: '',

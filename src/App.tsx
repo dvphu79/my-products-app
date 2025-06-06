@@ -3,6 +3,7 @@ import { APPWRITE_CONFIG } from '@/lib/appwrite/config';
 import { logDev } from '@/lib/utils';
 import RootLayout from './_root/RootLayout';
 import AuthLayout from './_auth/AuthLayout';
+import SignupForm from './_auth/forms/SignupForm'; // Import SignupForm
 import SigninForm from './_auth/forms/SigninForm';
 import { Home } from '@/_root/pages';
 
@@ -15,6 +16,7 @@ const App = () => {
         {/* public routes */}
         <Route element={<AuthLayout />}>
           <Route path='/sign-in' element={<SigninForm />} />
+          <Route path='/sign-up' element={<SignupForm />} />
         </Route>
         {/* private routes */}
         <Route element={<RootLayout />}>
