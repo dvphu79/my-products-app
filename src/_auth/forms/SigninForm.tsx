@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Form,
@@ -15,9 +16,13 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useUserContext } from '@/context/AuthContext';
+import { signInAccount } from '@/lib/appwrite/api';
 
 const SigninForm = () => {
   const navigate = useNavigate();
+  const { checkAuthUser, isLoading: isAuthLoading } = useUserContext();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -28,10 +33,39 @@ const SigninForm = () => {
   });
 
   const onSubmit = async (data: LoginFormValues) => {
-    console.log(data);
-    console.log('submit sign in form.');
-    toast('sign in successful');
-    navigate('/');
+    setIsSubmitting(true);
+    try {
+      const session = await signInAccount(data);
+
+      if (!session) {
+        toast.error('Sign in failed: No session returned. Please try again.');
+        return;
+      }
+
+      const isLoggedIn = await checkAuthUser();
+      if (isLoggedIn) {
+        form.reset();
+        navigate('/');
+        toast.success('Sign in successful!');
+      } else {
+        // This case implies session was created, but checkAuthUser failed.
+        toast.error('Sign in failed: User authentication check failed. Please try again.');
+      }
+    } catch (error: any) {
+      console.error('Sign-in attempt failed:', error); // Log the full error for debugging.
+
+      let errorMessage = 'Sign in failed. An unexpected error occurred.';
+      // Attempt to extract a meaningful message from the error object.
+      if (error && typeof error.message === 'string' && error.message.trim() !== '') {
+        errorMessage = `Sign in failed: ${error.message}`;
+      } else if (typeof error === 'string' && error.trim() !== '') {
+        // Handle cases where the error itself is a string.
+        errorMessage = `Sign in failed: ${error}`;
+      }
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -92,8 +126,12 @@ const SigninForm = () => {
 
               {/* Display general auth error from context, only if not a field-specific Zod error */}
 
-              <Button type='submit' className='!mt-6 w-full'>
-                {'Sign In'}
+              <Button
+                type='submit'
+                className='!mt-6 w-full'
+                disabled={isSubmitting || isAuthLoading}
+              >
+                {isSubmitting || isAuthLoading ? 'Signing In...' : 'Sign In'}
               </Button>
             </form>
           </Form>

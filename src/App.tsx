@@ -6,6 +6,7 @@ import SigninForm from './_auth/forms/SigninForm';
 import { Home } from '@/_root/pages';
 
 const App = () => {
+  console.log(`current ENV: ${process.env.NODE_ENV}`);
   if (process.env.NODE_ENV === 'development') {
     console.log('Appwrite Config:', APPWRITE_CONFIG);
   }

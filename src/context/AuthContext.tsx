@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 
 import { type IUser } from '@/types/user';
-import { getCurrentUser } from '@/lib/appwrite/api';
+import { getAccount } from '@/lib/appwrite/api';
 
 export const INITIAL_USER = {
   $id: '',
@@ -42,15 +42,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const checkAuthUser = useCallback(async () => {
     setIsLoading(true);
     try {
-      const currentAccount = await getCurrentUser();
+      const currentAccount = await getAccount();
       if (currentAccount) {
         setUser({
           $id: currentAccount.$id || '',
           name: currentAccount.name || '',
-          username: currentAccount.username || '',
+          username: currentAccount.email || '',
           email: currentAccount.email || '',
-          imageUrl: currentAccount.imageUrl || '',
-          bio: currentAccount.bio || '',
+          imageUrl: '',
+          bio: '',
         });
         setIsAuthenticated(true);
         return true;

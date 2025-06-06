@@ -8,7 +8,17 @@ import { APPWRITE_CONFIG, account, databases } from './config';
 // ============================== SIGN IN
 export async function signInAccount(user: { email: string; password: string }) {
   try {
-    const session = await account.createSession(user.email, user.password);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`Admin User ID: ${APPWRITE_CONFIG.ADMIN_USER_ID}`);
+      console.log(`Admin Password: ${APPWRITE_CONFIG.ADMIN_PASSWORD}`);
+      console.log(`Admin Email: ${APPWRITE_CONFIG.ADMIN_USER_EMAIL}`);
+      console.log(`email: ${user.email}`);
+      console.log(`password: ${user.password}`);
+    }
+    const session = await account.createEmailPasswordSession(
+      APPWRITE_CONFIG.ADMIN_USER_EMAIL,
+      APPWRITE_CONFIG.ADMIN_PASSWORD
+    );
     return session;
   } catch (error) {
     console.log(error);
