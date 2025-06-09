@@ -2,7 +2,8 @@ import { useNavigate } from 'react-router-dom';
 import { createContext, useContext, useEffect, useState, useCallback, useMemo } from 'react';
 
 import { type IUser } from '@/types/user';
-import { getCurrentUser } from '@/lib/appwrite/api';
+import { getCurrentUser, signOutAccount } from '@/lib/appwrite/api';
+import { toast } from 'sonner';
 
 export const INITIAL_USER = {
   $id: '',
@@ -21,6 +22,7 @@ const INITIAL_STATE = {
   setUser: () => {},
   setIsAuthenticated: () => {},
   checkAuthUser: async () => false as boolean,
+  signOut: async () => {},
 };
 
 type IContextType = {
@@ -30,6 +32,7 @@ type IContextType = {
   isAuthenticated: boolean;
   setIsAuthenticated: React.Dispatch<React.SetStateAction<boolean>>;
   checkAuthUser: () => Promise<boolean>;
+  signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<IContextType>(INITIAL_STATE);
@@ -89,6 +92,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkAuthUser, navigate]); // checkAuthUser is memoized, navigate is from react-router (stable)
 
+  const signOut = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      await signOutAccount();
+      setUser(INITIAL_USER);
+      setIsAuthenticated(false);
+      toast.success('Logged out successfully!');
+      navigate('/sign-in');
+    } catch (error) {
+      console.error('Logout failed:', error);
+      toast.error('Logout failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [navigate, setIsLoading, setUser, setIsAuthenticated]);
+
   const value = useMemo(
     () => ({
       user,
@@ -97,8 +116,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       isAuthenticated,
       setIsAuthenticated,
       checkAuthUser,
+      signOut,
     }),
-    [user, isLoading, isAuthenticated, checkAuthUser]
+    [user, isLoading, isAuthenticated, checkAuthUser, signOut]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
