@@ -7,7 +7,6 @@ const RootLayout = () => {
     <div className='flex min-h-screen w-full'>
       <DesktopSidebar />
       <div className='flex flex-1 flex-col sm:pl-60'>
-        {' '}
         {/* sm:pl-60 matches DesktopSidebar width */}
         <Header />
         <main className='bg-muted/40 flex-1 overflow-x-hidden p-4 pt-20 sm:p-6 sm:pt-6'>

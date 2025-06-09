@@ -6,6 +6,8 @@ import AuthLayout from './_auth/AuthLayout';
 import SignupForm from './_auth/forms/SignupForm'; // Import SignupForm
 import SigninForm from './_auth/forms/SigninForm';
 import { Home } from '@/_root/pages';
+import ProductsPage from './_root/pages/ProductsPage'; // Import ProductsPage
+import { ProductsProvider } from './contexts/ProductsContext'; // Import ProductsProvider
 
 const App = () => {
   console.log(`current ENV: ${process.env.NODE_ENV}`);
@@ -21,6 +23,14 @@ const App = () => {
         {/* private routes */}
         <Route element={<RootLayout />}>
           <Route index element={<Home />} />
+          <Route
+            path='/products'
+            element={
+              <ProductsProvider>
+                <ProductsPage />
+              </ProductsProvider>
+            }
+          />
         </Route>
       </Routes>
     </main>

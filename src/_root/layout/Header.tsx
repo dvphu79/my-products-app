@@ -21,7 +21,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'; // Assuming Shadcn UI component
 import { cn } from '@/lib/utils';
 import { NAV_ITEMS } from './nav-items';
-import { useUserContext } from '@/context/AuthContext';
+import { useUserContext } from '@/contexts/AuthContext';
 
 const Header = () => {
   const location = useLocation();

@@ -16,7 +16,7 @@ import { toast } from 'sonner';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button'; // Link was missing here, added for consistency
 import { Link, useNavigate } from 'react-router-dom';
-import { useUserContext } from '@/context/AuthContext';
+import { useUserContext } from '@/contexts/AuthContext';
 import { signInAccount } from '@/lib/appwrite/api';
 
 const SigninForm = () => {

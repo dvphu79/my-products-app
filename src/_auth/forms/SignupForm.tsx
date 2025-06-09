@@ -17,7 +17,7 @@ import { Button } from '@/components/ui/button';
 import { Mail, Lock, User, AtSign, UserPlus } from 'lucide-react';
 
 import { signupSchema, type SignupFormValues } from '@/lib/schemas';
-import { useUserContext } from '@/context/AuthContext';
+import { useUserContext } from '@/contexts/AuthContext';
 import { createUserAccount, signInAccount } from '@/lib/appwrite/api';
 
 const SignupForm = () => {

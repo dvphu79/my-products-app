@@ -1,6 +1,7 @@
 import { Query, ID } from 'appwrite';
-import { APPWRITE_CONFIG, account, databases } from './config';
-import { type SignupFormValues } from '@/lib/schemas';
+import { APPWRITE_CONFIG, account, databases, storage } from './config';
+import { type ProductFormValues, type SignupFormValues } from '@/lib/schemas';
+import type { IProduct } from '@/types/product';
 
 // ============================================================
 // AUTH
@@ -121,6 +122,88 @@ export async function saveUserToDB(user: {
     return newUserDocument;
   } catch (error) {
     console.error('Error saving user to DB:', error);
+    throw error;
+  }
+}
+
+// ============================== PRODUCTS
+
+/**
+ * Creates a new product document in Appwrite.
+ * @param productData - The product data from the form.
+ * @param imageId - Optional ID of the uploaded image in Appwrite Storage.
+ * @returns The newly created product document.
+ */
+export async function createProductDocument(
+  productData: ProductFormValues,
+  imageId?: string
+): Promise<IProduct> {
+  try {
+    const dataToSave = {
+      name: productData.name,
+      category: productData.category,
+      price: Number(productData.price),
+      stock: Number(productData.stock),
+      description: productData.description || '',
+      ...(imageId && { imageId: imageId }), // Conditionally add imageId
+    };
+
+    const newProduct = await databases.createDocument(
+      APPWRITE_CONFIG.DATABASE_ID,
+      APPWRITE_CONFIG.PRODUCTS_COLLECTION_ID, // Ensure this is defined in your appwriteConfig
+      ID.unique(),
+      dataToSave
+    );
+    // Assuming IProduct matches the structure of the document returned by Appwrite
+    // You might need to fetch the image URL separately if not storing it directly
+    return newProduct as unknown as IProduct;
+  } catch (error) {
+    console.error('Error creating product document:', error);
+    throw error;
+  }
+}
+
+/**
+ * Fetches all products from Appwrite.
+ * @returns A list of products.
+ */
+export async function getAppwriteProducts(): Promise<IProduct[]> {
+  try {
+    const response = await databases.listDocuments(
+      APPWRITE_CONFIG.DATABASE_ID,
+      APPWRITE_CONFIG.PRODUCTS_COLLECTION_ID, // Ensure this is defined in your appwriteConfig
+      [Query.orderDesc('$createdAt')] // Optional: order by creation date
+    );
+
+    // Map documents to IProduct, potentially fetching image URLs
+    const products = response.documents.map((doc) => {
+      let imageUrl;
+      if (doc.imageId) {
+        try {
+          imageUrl = storage.getFilePreview(
+            APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!,
+            doc.imageId as string
+          );
+        } catch (e) {
+          console.warn(`Failed to get preview URL for imageId ${doc.imageId}:`, e);
+          imageUrl = undefined; // Or a placeholder URL
+        }
+      }
+      return {
+        $id: doc.$id,
+        name: doc.name as string,
+        category: doc.category as string,
+        price: doc.price as number,
+        stock: doc.stock as number,
+        description: doc.description as string | undefined,
+        imageId: doc.imageId as string | undefined,
+        imageUrl: imageUrl,
+      };
+    });
+
+    return products;
+  } catch (error) {
+    console.error('Error fetching products:', error);
     throw error;
   }
 }

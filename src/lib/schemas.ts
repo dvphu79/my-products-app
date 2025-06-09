@@ -21,3 +21,27 @@ export const signupSchema = z.object({
 });
 
 export type SignupFormValues = z.infer<typeof signupSchema>;
+
+export const productSchema = z.object({
+  name: z.string().min(3, { message: 'Product name must be at least 3 characters.' }),
+  category: z.string().min(2, { message: 'Category is required.' }),
+  price: z.coerce.number().positive({ message: 'Price must be a positive number.' }),
+  stock: z.coerce.number().int().min(0, { message: 'Stock cannot be negative.' }),
+  description: z.string().optional(),
+  image: z
+    .custom<FileList | undefined | null>() // For file input, FileList is more accurate
+    .refine(
+      (files) => !files || files.length === 0 || files[0].size <= 2 * 1024 * 1024, // Max 2MB
+      `Image size should be less than 2MB.`
+    )
+    .refine(
+      (files) =>
+        !files ||
+        files.length === 0 ||
+        ['image/jpeg', 'image/png', 'image/webp', 'image/gif'].includes(files[0].type),
+      'Only .jpg, .png, .webp, .gif formats are supported.'
+    )
+    .optional(),
+});
+
+export type ProductFormValues = z.infer<typeof productSchema>;
