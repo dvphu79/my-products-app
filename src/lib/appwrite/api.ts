@@ -136,7 +136,8 @@ export async function saveUserToDB(user: {
  */
 export async function createProductDocument(
   productData: ProductFormValues,
-  imageId?: string
+  imageId?: string,
+  imageUrl?: string
 ): Promise<IProduct> {
   try {
     const dataToSave = {
@@ -146,6 +147,7 @@ export async function createProductDocument(
       stock: Number(productData.stock),
       description: productData.description || '',
       ...(imageId && { imageId: imageId }), // Conditionally add imageId
+      imageUrl: imageUrl || null, // Store imageUrl, or null if no image
     };
 
     const newProduct = await databases.createDocument(
@@ -215,7 +217,7 @@ export async function updateAppwriteProduct(
       IProduct,
       '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'
     >
-  >
+  > & { imageId?: string | null; imageUrl?: string | null }
 ): Promise<IProduct | null> {
   try {
     const updatedDocument = await databases.updateDocument(

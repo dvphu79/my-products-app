@@ -78,13 +78,17 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       }
 
       // 2. Create product document in Appwrite Database
-      const newProductDocument = await createProductDocument(productData, uploadedImageId);
+      const newProductDocument = await createProductDocument(
+        productData,
+        uploadedImageId,
+        uploadedImageUrl?.toString() // Pass the full URL to be saved
+      );
 
       // 3. Update local state
-      const productWithImageUrl = { ...newProductDocument, imageUrl: uploadedImageUrl };
-      setProducts((prev) => [productWithImageUrl, ...prev]);
+      // Assuming newProductDocument from createProductDocument now includes the imageUrl
+      setProducts((prev) => [newProductDocument, ...prev]);
       toast.success('Product added successfully!');
-      return productWithImageUrl;
+      return newProductDocument;
     } catch (err: any) {
       console.error('Failed to add product:', err);
       setError(err.message || 'Failed to add product.');
@@ -140,6 +144,7 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
         price: Number(productData.price),
         stock: Number(productData.stock),
         imageId: imageIdToSave,
+        imageUrl: newImageUrl?.toString(), // Add imageUrl to the payload for DB
       };
 
       // Call the (placeholder) API function to update the document in Appwrite DB
@@ -147,13 +152,10 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
       const updatedDocument = await updateAppwriteProduct(productId, payloadForDB);
 
       if (updatedDocument) {
-        const productForState: IProduct = {
-          ...updatedDocument, // This should have $id, name, category, price, stock, description, imageId
-          imageUrl: newImageUrl, // Use the potentially new image URL
-        };
-        setProducts((prev) => prev.map((p) => (p.$id === productId ? productForState : p)));
+        // Assuming updatedDocument from updateAppwriteProduct now includes the imageUrl
+        setProducts((prev) => prev.map((p) => (p.$id === productId ? updatedDocument : p)));
         toast.success('Product updated successfully!');
-        return productForState;
+        return updatedDocument;
       } else {
         toast.error('Failed to update product: No response from server.');
         return null;
