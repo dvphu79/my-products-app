@@ -180,7 +180,7 @@ export async function getAppwriteProducts(): Promise<IProduct[]> {
       let imageUrl;
       if (doc.imageId) {
         try {
-          imageUrl = storage.getFilePreview(
+          imageUrl = storage.getFileDownload(
             APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!,
             doc.imageId as string
           );
@@ -205,5 +205,49 @@ export async function getAppwriteProducts(): Promise<IProduct[]> {
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;
+  }
+}
+
+export async function updateAppwriteProduct(
+  productId: string,
+  productData: Partial<
+    Omit<
+      IProduct,
+      '$id' | '$collectionId' | '$databaseId' | '$createdAt' | '$updatedAt' | '$permissions'
+    >
+  >
+): Promise<IProduct | null> {
+  try {
+    const updatedDocument = await databases.updateDocument(
+      APPWRITE_CONFIG.DATABASE_ID,
+      APPWRITE_CONFIG.PRODUCTS_COLLECTION_ID,
+      productId,
+      productData
+    );
+    // The 'updatedDocument' will not have the 'imageUrl' directly from the database.
+    // The 'imageUrl' is constructed in the context using the 'imageId'.
+    // So, we return the raw document structure from Appwrite.
+    return updatedDocument as unknown as IProduct;
+  } catch (error) {
+    console.error('Appwrite service :: updateAppwriteProduct :: error', error);
+    // It's good practice to throw the error or handle it more specifically
+    // For now, returning null as per the context's expectation on failure
+    return null;
+  }
+}
+
+export async function deleteAppwriteProduct(productId: string): Promise<boolean> {
+  try {
+    await databases.deleteDocument(
+      APPWRITE_CONFIG.DATABASE_ID,
+      APPWRITE_CONFIG.PRODUCTS_COLLECTION_ID,
+      productId
+    );
+    return true;
+  } catch (error) {
+    console.error('Appwrite service :: deleteAppwriteProduct :: error', error);
+    // It's good practice to throw the error or handle it more specifically
+    // For now, returning false as per the context's expectation on failure
+    return false;
   }
 }

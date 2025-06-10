@@ -5,9 +5,9 @@ import { type ProductFormValues } from '@/lib/schemas';
 import {
   createProductDocument,
   getAppwriteProducts,
-  // updateAppwriteProduct, // We'll implement this later
-  // deleteAppwriteProduct, // We'll implement this later
-} from '@/lib/appwrite/api'; // Assuming you have these Appwrite API functions
+  updateAppwriteProduct,
+  deleteAppwriteProduct,
+} from '@/lib/appwrite/api';
 import { storage } from '@/lib/appwrite/config'; // For image uploads
 import { ID } from 'appwrite';
 import { APPWRITE_CONFIG } from '@/lib/appwrite/config';
@@ -71,7 +71,7 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
           imageFile
         );
         uploadedImageId = uploadedFile.$id;
-        uploadedImageUrl = storage.getFilePreview(
+        uploadedImageUrl = storage.getFileDownload(
           APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!,
           uploadedImageId
         );
@@ -104,22 +104,60 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
     try {
-      // const updatedProduct = await updateAppwriteProduct(productId, productData, imageFile, oldImageId); // Placeholder
-      // Mocked implementation:
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      const updatedProduct: IProduct = {
-        $id: productId,
-        ...productData,
+      let imageIdToSave = oldImageId;
+      let newImageUrl: string | undefined;
+
+      const currentProduct = products.find((p) => p.$id === productId);
+      newImageUrl = currentProduct?.imageUrl;
+
+      if (imageFile) {
+        // If there's an old image, delete it first
+        if (oldImageId) {
+          try {
+            await storage.deleteFile(APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!, oldImageId);
+          } catch (e: any) {
+            console.warn(`Failed to delete old image ${oldImageId}: ${e.message}`);
+            // Non-critical, proceed with uploading new image
+          }
+        }
+
+        // Upload new image
+        const uploadedFile = await storage.createFile(
+          APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!,
+          ID.unique(),
+          imageFile
+        );
+        imageIdToSave = uploadedFile.$id;
+        newImageUrl = storage
+          .getFileDownload(APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!, imageIdToSave)
+          .toString();
+      }
+
+      // Prepare data for the database, excluding the FileList 'image' property
+      const { image, ...dataToSave } = productData;
+      const payloadForDB = {
+        ...dataToSave,
         price: Number(productData.price),
         stock: Number(productData.stock),
-        imageUrl: imageFile
-          ? URL.createObjectURL(imageFile)
-          : products.find((p) => p.$id === productId)?.imageUrl,
-        imageId: imageFile ? 'updated-img-' + Math.random().toString(36).substr(2, 5) : oldImageId,
+        imageId: imageIdToSave,
       };
-      setProducts((prev) => prev.map((p) => (p.$id === productId ? updatedProduct : p)));
-      toast.success('Product updated successfully!');
-      return updatedProduct;
+
+      // Call the (placeholder) API function to update the document in Appwrite DB
+      // This function should return the updated document from Appwrite
+      const updatedDocument = await updateAppwriteProduct(productId, payloadForDB);
+
+      if (updatedDocument) {
+        const productForState: IProduct = {
+          ...updatedDocument, // This should have $id, name, category, price, stock, description, imageId
+          imageUrl: newImageUrl, // Use the potentially new image URL
+        };
+        setProducts((prev) => prev.map((p) => (p.$id === productId ? productForState : p)));
+        toast.success('Product updated successfully!');
+        return productForState;
+      } else {
+        toast.error('Failed to update product: No response from server.');
+        return null;
+      }
     } catch (err: any) {
       console.error('Failed to update product:', err);
       setError(err.message || 'Failed to update product.');
@@ -134,13 +172,30 @@ export const ProductsProvider = ({ children }: { children: ReactNode }) => {
     setIsLoading(true);
     setError(null);
     try {
-      console.log(`imageId: ${imageId}`);
-      // await deleteAppwriteProduct(productId, imageId); // Placeholder
-      // Mocked implementation:
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      setProducts((prev) => prev.filter((p) => p.$id !== productId));
-      toast.success('Product deleted successfully!');
-      return true;
+      // 1. Delete the image from Appwrite Storage if it exists
+      if (imageId) {
+        try {
+          await storage.deleteFile(APPWRITE_CONFIG.PRODUCT_IMAGES_BUCKET_ID!, imageId);
+        } catch (e: any) {
+          console.error(`Failed to delete image ${imageId}: ${e.message}`);
+          toast.error(`Failed to delete product image. Error: ${e.message}. Aborting delete.`);
+          // As per spec, if image deletion fails, abort product deletion.
+          return false;
+        }
+      }
+
+      // 2. Delete the product document from Appwrite Database
+      // This (placeholder) function should handle the actual DB deletion and return true/false
+      const isDeleted = await deleteAppwriteProduct(productId);
+
+      if (isDeleted) {
+        setProducts((prev) => prev.filter((p) => p.$id !== productId));
+        toast.success('Product deleted successfully!');
+        return true;
+      } else {
+        toast.error('Failed to delete product from database.');
+        return false;
+      }
     } catch (err: any) {
       console.error('Failed to delete product:', err);
       setError(err.message || 'Failed to delete product.');

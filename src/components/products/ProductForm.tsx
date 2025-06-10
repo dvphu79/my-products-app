@@ -155,7 +155,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
                   {' '}
                   <FormLabel>Price</FormLabel>{' '}
                   <FormControl>
-                    <Input type='number' step='0.01' {...field} />
+                    <Input type='number' step='1' {...field} />
                   </FormControl>{' '}
                   <FormMessage />{' '}
                 </FormItem>
@@ -211,7 +211,10 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               </SheetClose>
               <Button
                 type='submit'
-                disabled={isSubmitting || (!form.formState.isDirty && mode === 'edit')}
+                disabled={
+                  isSubmitting ||
+                  (mode === 'edit' && !form.formState.isDirty && !form.getValues('image'))
+                }
               >
                 {isSubmitting
                   ? mode === 'add'
